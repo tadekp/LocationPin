@@ -1,13 +1,16 @@
 package pl.litterae.locpin.model;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public final class StartInfo {
 	private final String imageUrl;
-	//private final LatLng location;
+	private final LatLng location;
 	private final String text;
 
-	public StartInfo(String imageUrl, String text) {
+	public StartInfo(String imageUrl, String text, String latitudeStr, String longitudeStr) {
 		this.imageUrl = imageUrl;
 		this.text = text;
+		location = new LatLng(Double.parseDouble(latitudeStr), Double.parseDouble(longitudeStr));
 	}
 
 	public String getImageUrl() {
@@ -16,5 +19,9 @@ public final class StartInfo {
 
 	public String getText() {
 		return text;
+	}
+
+	public LatLng getLocation() {
+		return location;
 	}
 }

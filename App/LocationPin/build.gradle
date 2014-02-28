@@ -19,6 +19,7 @@ android {
 }
 
 dependencies {
+	compile 'com.google.android.gms:play-services:3+'
 	compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 	compile files('libs/android-async-http-1.4.4.jar')
 }

@@ -4,6 +4,7 @@ import pl.litterae.locpin.R;
 import pl.litterae.locpin.common.Cleanupable;
 import pl.litterae.locpin.common.Command;
 import pl.litterae.locpin.model.ServerUrl;
+import pl.litterae.locpin.model.StartInfo;
 
 public final class CommandFactory implements Cleanupable {
 	private static final CommandFactory instance = new CommandFactory();
@@ -41,8 +42,11 @@ public final class CommandFactory implements Cleanupable {
 			case START:
 				currentCommand = new StartCommand((String) data);
 				break;
-			case GET_IMAGE:
-				currentCommand = new GetImageCommand((String) data);
+			case ACCESS_IMAGE:
+				if (data instanceof StartInfo) {
+					StartInfo startInfo = (StartInfo) data;
+					currentCommand = new AccessImageCommand(startInfo.getImageUrl());
+				}
 				break;
 		}
 		return currentCommand;

@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import pl.litterae.locpin.R;
 import pl.litterae.locpin.controller.MenuController;
 
-public class MainActivity extends Activity {
+public final class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +50,12 @@ public class MainActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		MenuController.getInstance().cleanup();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		MenuController.getInstance().clearAllData();
 	}
 
 	/**

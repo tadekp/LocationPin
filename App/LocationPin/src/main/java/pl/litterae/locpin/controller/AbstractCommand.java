@@ -17,4 +17,13 @@ public abstract class AbstractCommand implements Command {
 	public final Type getType() {
 		return type;
 	}
+
+	@Override
+	public Type getNextCommandType() {
+		return null;
+	}
+
+	@Override
+	public void consumeResult(Object result) {
+	}
 }
