@@ -19,5 +19,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+	compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+	compile files('libs/android-async-http-1.4.4.jar')
 }

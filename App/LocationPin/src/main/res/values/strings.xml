@@ -3,6 +3,7 @@
 
     <string name="app_name">Location Pin</string>
     <string name="hello_world">Hello world!</string>
+    <string name="action_start">Start</string>
     <string name="action_settings">Settings</string>
 
 </resources>

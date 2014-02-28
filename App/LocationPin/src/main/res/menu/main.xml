@@ -1,9 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="pl.litterae.locpin.MainActivity" >
-    
-    <item android:id="@+id/action_settings"
+    tools:context="pl.litterae.locpin.app.MainActivity" >
+
+	<item android:id="@+id/action_start"
+		  android:title="@string/action_start"
+		  android:orderInCategory="100"
+		  android:icon="@android:drawable/ic_menu_compass"
+		  android:showAsAction="ifRoom|withText" />
+
+    <!--
+	<item android:id="@+id/action_settings"
         android:title="@string/action_settings"
-        android:orderInCategory="100"
+        android:orderInCategory="900"
         android:showAsAction="never" />
+        -->
 </menu>

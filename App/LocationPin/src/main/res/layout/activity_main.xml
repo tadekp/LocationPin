@@ -3,5 +3,5 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="pl.litterae.locpin.MainActivity"
+    tools:context="pl.litterae.locpin.app.MainActivity"
     tools:ignore="MergeRootFrame" />
