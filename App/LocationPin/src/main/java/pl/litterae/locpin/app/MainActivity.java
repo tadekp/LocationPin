@@ -2,17 +2,21 @@ package pl.litterae.locpin.app;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import pl.litterae.locpin.R;
 import pl.litterae.locpin.controller.MenuController;
+import pl.litterae.locpin.model.PinModel;
 
 public final class MainActivity extends Activity {
+	static ImageView testImageView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +50,29 @@ public final class MainActivity extends Activity {
 		}
 	}
 
+	private final Runnable pinChangeNotifier = new Runnable() {
+		@Override
+		public void run() {
+			if (testImageView != null) {
+				Bitmap bitmap = PinModel.getInstance().getBitmap();
+				if (bitmap != null) {
+					testImageView.setImageBitmap(bitmap);
+				}
+			}
+		}
+	};
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		PinModel.getInstance().registerNotifier(pinChangeNotifier);
+	}
+
 	@Override
 	protected void onPause() {
 		super.onPause();
 		MenuController.getInstance().cleanup();
+		PinModel.getInstance().unregisterNotifier(pinChangeNotifier);
 	}
 
 	@Override
@@ -70,6 +93,7 @@ public final class MainActivity extends Activity {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 		                         Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+			testImageView = (ImageView) rootView.findViewById(R.id.main_test_image);
 			return rootView;
 		}
 	}

@@ -14,7 +14,7 @@ public final class StartCommand extends RemoteCommand {
 	}
 
 	@Override
-	protected Object prepareSuccessfulResultFrom(Header[] headers, JSONObject json) {
+	protected Object prepareSuccessfulResultFromJson(Header[] headers, JSONObject json) {
 		try {
 			String imageUrl = json.getString(Key.IMAGE.toString());
 			String text = json.getString(Key.TEXT.toString());
@@ -27,6 +27,11 @@ public final class StartCommand extends RemoteCommand {
 			e.printStackTrace();
 			return Error.INCOMPLETE_SERVER_START_INFO;
 		}
+	}
+
+	@Override
+	protected Object prepareSuccessfulResultFromBinaryData(Header[] headers, byte[] binaryData) {
+		return null;
 	}
 
 	@Override

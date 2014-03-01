@@ -33,7 +33,8 @@ public abstract class RemoteCommand extends AbstractCommand {
 	private final boolean binary;
 	private final AsyncHttpClient client;
 
-	abstract protected Object prepareSuccessfulResultFrom(Header[] headers, JSONObject json);
+	abstract protected Object prepareSuccessfulResultFromJson(Header[] headers, JSONObject json);
+	abstract protected Object prepareSuccessfulResultFromBinaryData(Header[] headers, byte[] binaryData);
 
 	protected RemoteCommand(Type type, String url, boolean binary) {
 		super(type);
@@ -51,11 +52,18 @@ public abstract class RemoteCommand extends AbstractCommand {
 				@Override
 				public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
 					super.onSuccess(statusCode, headers, binaryData);
+					if (resultNotifier != null) {
+						Object result = prepareSuccessfulResultFromBinaryData(headers, binaryData);
+						completeWith(resultNotifier, result);
+					}
 				}
 
 				@Override
 				public void onFailure(int statusCode, Header[] headers, byte[] binaryData, Throwable error) {
 					super.onFailure(statusCode, headers, binaryData, error);
+					if (resultNotifier != null) {
+						resultNotifier.completedWithSuccess(false, getErrorFrom(headers));
+					}
 				}
 			});
 		} else {
@@ -65,12 +73,8 @@ public abstract class RemoteCommand extends AbstractCommand {
 					super.onSuccess(statusCode, headers, responseBody);
 					if (resultNotifier != null) {
 						JSONObject json = prepareResponseJson(responseBody);
-						Object result = prepareSuccessfulResultFrom(headers, json);
-						if (result instanceof Error) {
-							resultNotifier.completedWithSuccess(false, result);
-						} else {
-							resultNotifier.completedWithSuccess(true, result);
-						}
+						Object result = prepareSuccessfulResultFromJson(headers, json);
+						completeWith(resultNotifier, result);
 					}
 				}
 
@@ -82,6 +86,16 @@ public abstract class RemoteCommand extends AbstractCommand {
 					}
 				}
 			});
+		}
+	}
+
+	private void completeWith(ResultNotifier resultNotifier, Object result) {
+		if (resultNotifier != null) {
+			if (result instanceof Error) {
+				resultNotifier.completedWithSuccess(false, result);
+			} else {
+				resultNotifier.completedWithSuccess(true, result);
+			}
 		}
 	}
 

@@ -38,16 +38,18 @@ public final class CommandFactory implements Cleanupable {
 
 	Command produceCommandForType(Command.Type commandType, Object data) {
 		cleanup();
-		switch (commandType) {
-			case START:
-				currentCommand = new StartCommand((String) data);
-				break;
-			case ACCESS_IMAGE:
-				if (data instanceof StartInfo) {
-					StartInfo startInfo = (StartInfo) data;
-					currentCommand = new AccessImageCommand(startInfo.getImageUrl());
-				}
-				break;
+		if (commandType != null) {
+			switch (commandType) {
+				case START:
+					currentCommand = new StartCommand((String) data);
+					break;
+				case ACCESS_IMAGE:
+					if (data instanceof StartInfo) {
+						StartInfo startInfo = (StartInfo) data;
+						currentCommand = new AccessImageCommand(startInfo.getImageUrl());
+					}
+					break;
+			}
 		}
 		return currentCommand;
 	}
