@@ -4,13 +4,13 @@ import com.google.android.gms.maps.model.LatLng;
 
 public final class StartInfo {
 	private final String imageUrl;
-	private final LatLng location;
+	private final LatLng position;
 	private final String text;
 
 	public StartInfo(String imageUrl, String text, String latitudeStr, String longitudeStr) {
 		this.imageUrl = imageUrl;
 		this.text = text;
-		location = new LatLng(Double.parseDouble(latitudeStr), Double.parseDouble(longitudeStr));
+		position = new LatLng(Double.parseDouble(latitudeStr), Double.parseDouble(longitudeStr));
 	}
 
 	public String getImageUrl() {
@@ -21,7 +21,7 @@ public final class StartInfo {
 		return text;
 	}
 
-	public LatLng getLocation() {
-		return location;
+	public LatLng getPosition() {
+		return position;
 	}
 }

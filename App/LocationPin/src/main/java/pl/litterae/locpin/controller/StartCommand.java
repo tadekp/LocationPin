@@ -42,6 +42,8 @@ public final class StartCommand extends RemoteCommand {
 	@Override
 	public void consumeResult(Object result) {
 		StartInfo startInfo = (StartInfo) result;
-		PinModel.getInstance().setText(startInfo.getText());
+		PinModel pinModel = PinModel.getInstance();
+		pinModel.setText(startInfo.getText());
+		pinModel.setPosition(startInfo.getPosition());
 	}
 }

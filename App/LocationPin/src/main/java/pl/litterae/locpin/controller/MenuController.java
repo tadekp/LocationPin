@@ -1,14 +1,20 @@
 package pl.litterae.locpin.controller;
 
+import android.content.Context;
 import android.os.Handler;
 
+import pl.litterae.locpin.R;
 import pl.litterae.locpin.common.Cleanupable;
 import pl.litterae.locpin.common.Command;
 import pl.litterae.locpin.common.ResultNotifier;
 import pl.litterae.locpin.model.PinModel;
+import pl.litterae.locpin.view.popup.InfoPopup;
 
 public final class MenuController implements Cleanupable {
 	private static final MenuController instance = new MenuController();
+	//mutable
+	private Context currentContext;
+	private String appTitle;
 
 	private MenuController() {
 	}
@@ -27,6 +33,15 @@ public final class MenuController implements Cleanupable {
 		return instance;
 	}
 
+	public Context getCurrentContext() {
+		return currentContext;
+	}
+
+	public void setCurrentContext(Context currentContext) {
+		this.currentContext = currentContext;
+		appTitle = currentContext.getString(R.string.app_name);
+	}
+
 	public boolean performActionFor(int actionID) {
 		final Command command = CommandFactory.getInstance().produceCommandForMenu(actionID);
 		if (command != null) {
@@ -34,6 +49,10 @@ public final class MenuController implements Cleanupable {
 		} else {
 			return false;
 		}
+	}
+
+	public String getAppTitle() {
+		return appTitle;
 	}
 
 	private boolean performActionForCommand(final Command command) {
@@ -52,7 +71,7 @@ public final class MenuController implements Cleanupable {
 						});
 					}
 				} else {
-					//TODO: toast or popup with error info
+					InfoPopup.show(command.getErrorMessageWith(result), currentContext);
 				}
 			}
 		});

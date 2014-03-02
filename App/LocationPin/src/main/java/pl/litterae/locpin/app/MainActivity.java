@@ -1,35 +1,88 @@
 package pl.litterae.locpin.app;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationListener;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import pl.litterae.locpin.R;
+import pl.litterae.locpin.controller.CurrentLocationController;
 import pl.litterae.locpin.controller.MenuController;
+import pl.litterae.locpin.controller.UseCase;
+import pl.litterae.locpin.model.CurrentLocationInfo;
 import pl.litterae.locpin.model.PinModel;
+import pl.litterae.locpin.util.Internet;
+import pl.litterae.locpin.view.component.CurrentLocationView;
 
-public final class MainActivity extends Activity {
-	static ImageView testImageView;
+public final class MainActivity extends Activity implements LocationListener {
+	private GoogleMap map;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		if (savedInstanceState == null) {
-			getFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment())
-					.commit();
-		}
-	}
+		Internet.Manager.getInstance().initialize(this);
+		MenuController.getInstance().setCurrentContext(this);
+		CurrentLocationController.getInstance().initWith(this);
 
+		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+		map.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+			@Override
+			public View getInfoWindow(Marker marker) {
+				return null;
+			}
+
+			@Override
+			public View getInfoContents(Marker marker) {
+				View view = getLayoutInflater().inflate(R.layout.bubble, null);
+				PinModel pinModel = PinModel.getInstance();
+				String text;
+				Bitmap bitmap;
+				if (marker.getTitle().equalsIgnoreCase(UseCase.START_WITH_SERVER.getLabel())) {
+					text = pinModel.getText();
+					bitmap = pinModel.getBitmap();
+				} else {
+					text = marker.getTitle();
+					bitmap = null;
+				}
+
+				TextView textView = (TextView) view.findViewById(R.id.bubble_text);
+				textView.setText(text);
+
+				ImageView imageView = (ImageView) view.findViewById(R.id.bubble_image);
+				CurrentLocationView currentLocationView = (CurrentLocationView) view.findViewById(R.id.bubble_info);
+
+				if (bitmap != null) {
+					imageView.setImageBitmap(bitmap);
+					currentLocationView.setVisibility(View.GONE);
+				} else {
+					imageView.setVisibility(View.GONE);
+					Location location = CurrentLocationController.getInstance().readLocation();
+					Location pinLocation = PinModel.getInstance().getLocation();
+					currentLocationView.setInfo(new CurrentLocationInfo(location, pinLocation));
+				}
+
+				return view;
+			}
+		});
+
+		LatLng iAmHere = CurrentLocationController.getInstance().readPosition();
+		adjustToPosition(iAmHere, false);
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -40,9 +93,6 @@ public final class MainActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		if (MenuController.getInstance().performActionFor(item.getItemId())) {
 			return true;
 		} else {
@@ -53,25 +103,51 @@ public final class MainActivity extends Activity {
 	private final Runnable pinChangeNotifier = new Runnable() {
 		@Override
 		public void run() {
-			if (testImageView != null) {
-				Bitmap bitmap = PinModel.getInstance().getBitmap();
-				if (bitmap != null) {
-					testImageView.setImageBitmap(bitmap);
-				}
+			PinModel pinModel = PinModel.getInstance();
+			if (pinModel.isComplete()) {
+				LatLng position = pinModel.getPosition();
+				String text = pinModel.getText();
+				map.addMarker(new MarkerOptions().position(position).title(UseCase.START_WITH_SERVER.getLabel()).snippet(text));
+				moveTo(position);
 			}
 		}
 	};
+
+	private final CurrentLocationController.Notifier currentLocationNotifier = new CurrentLocationController.Notifier() {
+		@Override
+		public void obtainedLocation(Location location) {
+			adjustToPosition(new LatLng(location.getLatitude(), location.getLongitude()), true);
+		}
+	};
+
+	private void adjustToPosition(LatLng position, boolean withMarker) {
+		if (position != null) {
+			if (withMarker) {
+				map.addMarker(new MarkerOptions().position(position).title(UseCase.LOCATE_AND_MEASURE.getLabel()));
+			}
+			moveTo(position);
+		}
+	}
+
+	private void moveTo(LatLng position) {
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
+		map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 		PinModel.getInstance().registerNotifier(pinChangeNotifier);
+		CurrentLocationController.getInstance().registerNotifier(currentLocationNotifier);
+		CurrentLocationController.getInstance().resume();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		MenuController.getInstance().cleanup();
+		CurrentLocationController.getInstance().unregisterNotifier(currentLocationNotifier);
+		CurrentLocationController.getInstance().pause();
 		PinModel.getInstance().unregisterNotifier(pinChangeNotifier);
 	}
 
@@ -79,23 +155,25 @@ public final class MainActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		MenuController.getInstance().clearAllData();
+		CurrentLocationController.getInstance().cleanup();
 	}
 
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
-	public static class PlaceholderFragment extends Fragment {
+	//LocationListener implementation
 
-		public PlaceholderFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-		                         Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-			testImageView = (ImageView) rootView.findViewById(R.id.main_test_image);
-			return rootView;
-		}
+	@Override
+	public void onLocationChanged(Location location) {
+		//TODO: change in case of more functionality...
 	}
 
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+	}
 }

@@ -5,7 +5,13 @@
 	<item android:id="@+id/action_start"
 		  android:title="@string/action_start"
 		  android:orderInCategory="100"
-		  android:icon="@android:drawable/ic_menu_compass"
+		  android:icon="@android:drawable/ic_dialog_map"
+		  android:showAsAction="always|withText" />
+
+	<item android:id="@+id/action_locate_me"
+		  android:title="@string/action_locate_me"
+		  android:orderInCategory="200"
+		  android:icon="@android:drawable/ic_menu_mylocation"
 		  android:showAsAction="ifRoom|withText" />
 
     <!--

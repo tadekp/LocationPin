@@ -1,9 +1,11 @@
 package pl.litterae.locpin.model;
 
 import android.graphics.Bitmap;
+import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,7 +16,7 @@ public final class PinModel implements Cleanupable {
 	private final Set<Runnable> changeNotifiers = new HashSet<Runnable>();
 
 	//mutable members
-	private LatLng location;
+	private LatLng position;
 	private String text;
 	private Bitmap bitmap;
 
@@ -23,7 +25,7 @@ public final class PinModel implements Cleanupable {
 
 	@Override
 	public void cleanup() {
-		location = null;
+		position = null;
 		text = null;
 		if (bitmap != null) {
 			bitmap.recycle();
@@ -44,6 +46,10 @@ public final class PinModel implements Cleanupable {
 		return instance;
 	}
 
+	public boolean isComplete() {
+		return text != null && position != null && bitmap != null;
+	}
+
 	public String getText() {
 		return text;
 	}
@@ -53,12 +59,12 @@ public final class PinModel implements Cleanupable {
 		notifyChange();
 	}
 
-	public LatLng getLocation() {
-		return location;
+	public LatLng getPosition() {
+		return position;
 	}
 
-	public void setLocation(LatLng location) {
-		this.location = location;
+	public void setPosition(LatLng position) {
+		this.position = position;
 		notifyChange();
 	}
 
@@ -75,5 +81,16 @@ public final class PinModel implements Cleanupable {
 		for (Runnable notifier : changeNotifiers) {
 			notifier.run();
 		}
+	}
+
+	public Location getLocation() {
+		if (isComplete()) {
+			Location location = new Location(text);
+			location.setLatitude(position.latitude);
+			location.setLongitude(position.longitude);
+			location.setTime(new Date().getTime());
+			return location;
+		}
+		return null;
 	}
 }

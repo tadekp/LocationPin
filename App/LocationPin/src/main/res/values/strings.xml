@@ -4,6 +4,7 @@
     <string name="app_name">Location Pin</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_start">Start</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_locate_me">Locate me</string>
+    <!--<string name="action_settings">Settings</string>-->
 
 </resources>
